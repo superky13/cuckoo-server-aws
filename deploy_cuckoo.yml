@@ -1,0 +1,34 @@
+---
+- name: deploy cuckoo
+  hosts: <your cuckoo public ip>
+  remote_user: ec2-user
+  become: true
+  become_user: root
+  vars:
+  - aws_access_key: ""
+  - aws_secret_key: ""
+  - cuckoo_resultserver_ip: "<your cuckoo private ip>"
+  - cuckoo_systemd_svc_file: "cuckoo.service"
+  - virt_platform: "aws"
+  #### aws autoscaling config
+  - aws_autoscale: "yes"
+  - aws_running_machines_gap: "5"
+  - aws_dynamic_machines_limit: "10"
+  - aws_image_id: "ami-02c032dc70e5789d0"
+  - aws_instance_type: "t2.medium"
+  - aws_subnet_id: "subnet-c93b3eb2"
+  - aws_security_groups: "sg-019800f59954930c0"
+  - aws_platform: "windows"
+  #### django web vars
+  - mongodb_user: "cuckoo"
+  - mongodb_password: "redhat"
+  - mongodb_admin_user: "admin"
+  - mongodb_admin_password: "admin"
+  - mongodb_admin_database: "admin"
+  - mongodb_database: "cuckoo"
+  - deploy_django_web: "True"
+  #### api server vars
+  - api_server_port: "8090"
+  - deploy_api_server: "True"
+  roles:
+  - role: '/root/cuckoo_deploy_role'

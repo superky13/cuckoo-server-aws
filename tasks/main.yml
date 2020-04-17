@@ -1,0 +1,115 @@
+- name: install req pkgs
+  yum:
+    name:
+    - "{{ item }}"
+    state: latest
+  loop: "{{ pkgs }}"
+
+- name: upgrade pip
+  shell: "pip2 install -U pip"
+
+- name: install and upgrade setuptools
+  shell: "pip2 install -U setuptools"
+
+- name: install and upgrade virtualenv
+  shell: "pip2 install -U virtualenv"
+
+- name: install and upgrade pymongo for mongodb-server
+  shell: "pip2 install -U pymongo"
+
+- name: has the python2 virtualenv already been created?
+  stat:
+    path: "{{ home_dir }}/{{ custom_virtenv }}"
+  register: virtenvpath
+
+- block:
+  - name: create a new python2 virtualenv
+    shell: "python2 -m virtualenv {{ custom_virtenv }}"
+    args:
+      chdir: "{{ home_dir }}"
+  when: virtenvpath.stat.isdir is not defined
+
+- name: use the new virtualenv {{ custom_virtenv }} to install boto3
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install -U boto3"
+  args:
+    chdir: "{{ home_dir }}"
+
+- name: install cuckoo using pip to pick up any missing dependencies 
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install -U cuckoo"
+  args:
+    chdir: "{{ home_dir }}"
+
+- name: remove pip installed cuckoo after installing missing dependencies 
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip uninstall -y cuckoo"
+  args:
+    chdir: "{{ home_dir }}"
+
+- name: use the new virtualenv {{ custom_virtenv }} to downgrade pip to known working version
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install pip==9.0.0"
+  args:
+    chdir: "{{ home_dir }}"
+
+- name: remove {{ cuckoo_base_dir }} to allow fresh conf files to be generated 
+  file:
+    path: "{{ cuckoo_base_dir }}"
+    state: absent
+
+- name: create dir to unpack the cuckoo_aws tarball
+  file:
+    state: directory
+    path: "{{ cuckoo_aws_dir }}"
+
+- name: unpack cuckoo_aws tarball
+  unarchive:
+    src: files/cuckoo_aws_tar.gz
+    dest: "{{ cuckoo_aws_dir }}"
+
+- name: use the new virtualenv {{ custom_virtenv }} to obtain matching monitoring binaries from the community repo
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && python stuff/monitor.py"
+  args:
+    chdir: "{{ cuckoo_aws_dir }}"
+
+- name: use the new virtualenv {{ custom_virtenv }} to install cuckoo as dev mode
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && python setup.py sdist develop"
+  args:
+    chdir: "{{ cuckoo_aws_dir }}"
+
+- name: use the new virtualenv {{ custom_virtenv }} run cuckoo in debug
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && cuckoo -d"
+  args:
+    chdir: "{{ cuckoo_aws_dir }}"
+
+### this may not be needed in future versions, but this is broken in the current version; need flask==0.12.2 for werkzeug 0.16
+- name: ensure the flask version is 0.12.2
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install flask==0.12.2"
+  args:
+    chdir: "{{ home_dir }}"
+
+- name: ensure the werkzeug version is 0.16.1
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install werkzeug==0.16.1"
+  args:
+    chdir: "{{ home_dir }}"
+  
+- name: import aws.conf code
+  import_tasks: aws.yml
+  when: virt_platform == "aws"
+
+- name: import web.conf code
+  import_tasks: web.yml
+  when: deploy_django_web
+
+- name: import api.conf code
+  import_tasks: api.yml
+  when: deploy_api_server
+
+- name: copy systemd service for cuckoo to proper dir
+  template:
+    src: "templates/{{ cuckoo_systemd_svc_file }}"
+    dest: "/etc/systemd/system/{{ cuckoo_systemd_svc_file }}"
+
+- name: start cuckoo
+  systemd:
+    name: "{{ cuckoo_systemd_svc_file }}"
+    state: restarted
+    daemon_reload: yes
+  when: virt_platform == "aws"

@@ -1,0 +1,47 @@
+- name: django web frontend variable assertions
+  assert:
+    that: 
+    - mongodb_admin_user is defined
+    - mongodb_admin_password is defined
+    - mongodb_admin_database is defined
+    - mongodb_user is defined
+    - mongodb_password is defined
+    - mongodb_database is defined
+    - cuckoo_web_dir is defined 
+    - cuckoo_resultserver_ip is defined 
+
+- name: ensure that the mongodb server is started an enabled 
+  systemd:
+    state: started
+    name: mongod
+    enabled: yes
+
+- name: create mongodb user {{ mongodb_admin_user }} and {{ mongodb_admin_database }} db
+  mongodb_user:
+    login_port: "27017"
+    database: "{{ mongodb_admin_database }}"
+    name: "{{ mongodb_admin_user }}"
+    password: "{{ mongodb_admin_password }}"
+    roles: "root"
+
+- name: create mongodb user {{ mongodb_user }} and {{ mongodb_database }} db
+  mongodb_user:
+    login_user: "{{ mongodb_admin_user }}"
+    login_password: "{{ mongodb_admin_password }}"
+    login_port: "27017"
+    database: "{{ mongodb_database }}"
+    name: "{{ mongodb_user }}"
+    password: "{{ mongodb_password }}"
+    roles:
+      - { db: "{{ mongodb_database }}", role: "readWrite" }
+
+- name: push the new reporting.conf to the cuckoo server
+  template:
+    src: templates/reporting.conf
+    dest: "{{ cuckoo_conf_dir }}/reporting.conf"
+
+- name: start the django web frontend
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && nohup cuckoo web -H {{ cuckoo_resultserver_ip }} &"
+  args:
+    chdir: "{{ cuckoo_web_dir }}"
+
