@@ -1,8 +1,16 @@
+- name: add epel repo
+  yum_repository:
+    name: epel
+    description: epel repo
+    gpgcheck: no
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+
 - name: install req pkgs
   yum:
     name:
     - "{{ item }}"
     state: latest
+    disable_gpg_check: yes
   loop: "{{ pkgs }}"
 
 - name: upgrade pip
@@ -35,7 +43,7 @@
     chdir: "{{ home_dir }}"
 
 - name: install cuckoo using pip to pick up any missing dependencies 
-  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install -U cuckoo"
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && pip install cuckoo=={{ cuckoo_version }}"
   args:
     chdir: "{{ home_dir }}"
 

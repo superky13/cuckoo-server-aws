@@ -1,6 +1,7 @@
 ## cuckoo config default variables
-pkgs: ['python2-pip', 'libjpeg-turbo', 'libjpeg-devel', 'libffi-devel', 'zlib-devel', 'python2-devel', 'gcc', 'swig', 'openssl-devel', 'mongodb', 'mongodb-server', 'tcpdump']
+pkgs: ['python', 'python2-pip', 'libjpeg-turbo', 'libjpeg-devel', 'libffi-devel', 'zlib-devel', 'python2-devel', 'gcc', 'swig', 'openssl-devel', 'mongodb', 'mongodb-server', 'tcpdump']
 custom_virtenv: "cuckoo_venv"
+cuckoo_version: "2.0.6"
 home_dir: "/root"
 cuckoo_web_dir: "{{ home_dir }}/.cuckoo/web"
 cuckoo_aws_dir: "{{ home_dir }}/cuckoo_aws"

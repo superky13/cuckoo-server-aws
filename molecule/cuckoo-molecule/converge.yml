@@ -1,13 +1,14 @@
 ---
-- name: deploy cuckoo
-  hosts: <your cuckoo public ip>
+- name: Converge
+  hosts: all
   remote_user: ec2-user
   become: true
   become_user: root
   vars:
-  - aws_access_key: ""
-  - aws_secret_key: ""
-  - cuckoo_resultserver_ip: "<your cuckoo private ip>"
+  - aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+  - aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+  - cuckoo_resultserver_ip: "{{ lookup('file', molecule_instance_config) | molecule_from_yaml | map(attribute='private_address') | list | first }}"
+  - cuckoo_bg_script: "cuckoo.sh"
   - cuckoo_systemd_svc_file: "cuckoo.service"
   - virt_platform: "aws"
   #### aws autoscaling config
@@ -31,5 +32,7 @@
   #### api server vars
   - api_server_port: "8090"
   - deploy_api_server: "True"
-  roles:
-  - role: '/root/cuckoo_deploy_role'
+  tasks:
+    - name: "include cuckoo_deploy_role"
+      include_role:
+        name: "cuckoo_deploy_role"

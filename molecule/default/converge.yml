@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include cuckoo_deploy_role"
+      include_role:
+        name: "cuckoo_deploy_role"
