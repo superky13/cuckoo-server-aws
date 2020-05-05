@@ -1,0 +1,11 @@
+- name: api server variable assertions
+  assert:
+    that: 
+    - api_server_port is defined
+    - cuckoo_resultserver_ip is defined
+
+- name: start the api server on port {{ api_server_port }}
+  shell: "source {{ home_dir }}/{{ custom_virtenv }}/bin/activate && nohup cuckoo api -H {{ cuckoo_resultserver_ip }} -p {{ api_server_port }} &"
+  args:
+    chdir: "{{ cuckoo_base_dir }}"
+

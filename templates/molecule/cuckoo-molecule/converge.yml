@@ -1,0 +1,38 @@
+---
+- name: Converge
+  hosts: all
+  remote_user: ec2-user
+  become: true
+  become_user: root
+  vars:
+  - aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+  - aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+  - cuckoo_resultserver_ip: "{{ lookup('file', molecule_instance_config) | molecule_from_yaml | map(attribute='private_address') | list | first }}"
+  - cuckoo_bg_script: "cuckoo.sh"
+  - cuckoo_systemd_svc_file: "cuckoo.service"
+  - virt_platform: "aws"
+  #### aws autoscaling config
+  - aws_tags: "autoscale_windows"
+  - aws_autoscale: "yes"
+  - aws_running_machines_gap: "5"
+  - aws_dynamic_machines_limit: "10"
+  - aws_image_id: "ami-02c032dc70e5789d0"
+  - aws_instance_type: "t2.medium"
+  - aws_subnet_id: "subnet-c93b3eb2"
+  - aws_security_groups: "sg-019800f59954930c0"
+  - aws_platform: "windows"
+  #### django web vars
+  - mongodb_user: "cuckoo"
+  - mongodb_password: "redhat"
+  - mongodb_admin_user: "admin"
+  - mongodb_admin_password: "admin"
+  - mongodb_admin_database: "admin"
+  - mongodb_database: "cuckoo"
+  - deploy_django_web: "True"
+  #### api server vars
+  - api_server_port: "8090"
+  - deploy_api_server: "True"
+  tasks:
+    - name: "include cuckoo_deploy_role"
+      include_role:
+        name: "cuckoo_deploy_role"

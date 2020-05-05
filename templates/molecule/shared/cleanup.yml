@@ -1,0 +1,38 @@
+---
+- name: cleanup
+  hosts: localhost
+  connection: local
+  tasks:
+  - debug:
+      msg: "cleanup code executed"
+
+  - name: pause to ensure windows instances have finished booting
+    pause: 
+      minutes: 1
+
+  - name: get autoscaled windows instance info
+    ec2_instance_info: 
+      filters:
+        "tag:AUTOSCALE_CUCKOO": "True"
+        instance-state-name: "running"
+    register: ec2_info
+
+  - name: delete autoscaled windows instance(s)
+    ec2:
+      state: absent
+      instance_ids: "{{ item.instance_id }}"
+    register: server
+    loop: "{{ ec2_info.instances }}"
+    loop_control:
+      label: "{{ item.instance_id }}"
+    async: 7200
+    poll: 0
+
+  - name: wait for instance(s) deletion to complete
+    async_status:
+      jid: "{{ item.ansible_job_id }}"
+    register: ec2_jobs
+    until: ec2_jobs.finished
+    retries: 300
+    loop: "{{ server.results }}"
+

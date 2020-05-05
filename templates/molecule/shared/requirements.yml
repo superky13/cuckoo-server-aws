@@ -1,0 +1,4 @@
+- name: role_molecule_aws_ci
+  src: git@git.ecicd.dso.ncps.us-cert.gov:sytems-capability-team/role_molecule_aws_ci.git
+  scm: git
+  version: create-destroy-molecule-ec2 

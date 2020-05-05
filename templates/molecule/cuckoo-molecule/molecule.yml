@@ -1,0 +1,30 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: ec2
+platforms:
+  - name: cuckoo-molecule
+    hostname: cuckoo-nest-server
+    image: ami-01a834fd83ae239ff
+    instance_type: t2.medium
+    vpc_subnet_id: subnet-c93b3eb2
+provisioner:
+  name: ansible
+  playbooks:
+    verify: tests/
+    cleanup: cleanup.yml
+  lint:
+    name: ansible-lint
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+scenario:
+  test_sequence:
+  - create
+  - prepare
+  - converge
+  - verify
+  - destroy
+  - cleanup
