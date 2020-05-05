@@ -6,9 +6,9 @@ driver:
 platforms:
   - name: cuckoo-molecule
     hostname: cuckoo-nest-server
-    image: ami-01a834fd83ae239ff
+    image: 
     instance_type: t2.medium
-    vpc_subnet_id: subnet-c93b3eb2
+    vpc_subnet_id: 
 provisioner:
   name: ansible
   playbooks:
