@@ -130,13 +130,13 @@ When installing roles from the command line, please keep in mind that roles can 
 To install in a defined path:
 
 ```bash
-ansible-galaxy install ssh://git@gitlab.consulting.redhat.com:2222/DHS/DOMino/ansible-role-cuckoo-deploy.git
+ansible-galaxy install ssh://yourGitLabInstance.git
 ```
 
 Or, to install in the directory of your Ansible code:
 
 ```bash
-ansible-galaxy install --roles-path ./roles/ ssh://git@gitlab.consulting.redhat.com:2222/DHS/DOMino/ansible-role-cuckoo-deploy.git
+ansible-galaxy install --roles-path ./roles/ ssh://git@yourGitLabInstance.git
 ```
 
 ### Requirements.yml Installation
@@ -145,7 +145,7 @@ Role and installation can also be defined in a file (which is subseqnetly used i
 
 ```yaml
 # from GitLab or other git-based scm
-- src: ssh://git@gitlab.consulting.redhat.com:2222/DHS/DOMino/ansible-role-cuckoo-deploy.git
+- src: ssh://git@yourGitLabInstance.git
   scm: git
 ```
 
